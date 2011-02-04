@@ -1,0 +1,17 @@
+.logo {
+    width: 489px;
+    height: 75px;
+    position: absolute;
+    top: 5%;
+    left: 10px;
+    margin: -15px 0 0;
+    background: static_url('images/logo.png');
+    text-indent: -9999px;
+}
+
+.panel-design {
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+}
+
