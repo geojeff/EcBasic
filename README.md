@@ -9,3 +9,6 @@ need to translate from Romanian, if you don't speak that language).
 I presently don't need to develop this app further, but perhaps we can fix/move it along, if only as another simple example
 SproutCore app. Or somebody may need to develop it for a real web storefront.
 
+This app has been developed with SproutCore stable-1.4 and with the Ki statechart framework. You'll need to add Ki to
+your frameworks directory, and depending on your local dev environment, perhaps SproutCore also.
+
