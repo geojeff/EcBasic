@@ -79,8 +79,12 @@ EcBasic.statechart = Ki.Statechart.create({
       enterState: function() {
         console.log('AUTHENTICATING');
 
-        // Call auth on the data source, which has callbacks to send events to the "authResult" functions here.
-        return Ki.Async.perform('logIn');
+        // In a live app, auth on the data source would call the backend,
+        // which would have callbacks to send events to the "authResult" functions here.
+        //return Ki.Async.perform('logIn');
+
+        // But for development, we will fake auth
+        return Ki.Async.perform('fakeLogIn');
       },
 
       exitState: function() {
@@ -93,6 +97,14 @@ EcBasic.statechart = Ki.Statechart.create({
         EcBasic.store.dataSource.connect(EcBasic.store, function() {
           EcBasic.store.dataSource.authRequest(username, password);
         });
+      },
+
+      fakeLogIn: function() {
+        var username = EcBasic.adminController.get('username');
+        var password = EcBasic.adminController.get('password');
+
+        console.log('letting in: %@ / %@'.fmt(username, password));
+        this.authSuccess();
       },
 
       // [TODO: make an authFailureCallback in Thoth-SC]
@@ -113,7 +125,7 @@ EcBasic.statechart = Ki.Statechart.create({
     //    state: COLD_START
     // ----------------------------------------
     COLD_START: Ki.State.design({
-      initialSubstate: "ADDING_CATEGORY_COLD",
+      initialSubstate: "ADDING_CATEGORY_COLD_START",
 
       enterState: function() {
         console.log('COLD_START');
@@ -123,39 +135,38 @@ EcBasic.statechart = Ki.Statechart.create({
       },
 
       // ----------------------------------------
-      //    state: ADDING_CATEGORY_COLD
+      //    state: ADDING_CATEGORY_COLD_START
       // ----------------------------------------
-      ADDING_CATEGORY_COLD: Ki.State.design({
+      ADDING_CATEGORY_COLD_START: Ki.State.design({
+        _category: null,
 
         enterState: function() {
-          console.log('ADDING_CATEGORY_COLD');
-
-          var category;
+          console.log('ADDING_CATEGORY_COLD_START');
 
           if (EcBasic.storeType === 'fixtures') {
-            category = EcBasic.store.find(EcBasic.Category, 1);
+            this._category = EcBasic.store.find(EcBasic.Category, 1);
           }
 
-          if (SC.none(category)) {
-            this.category = EcBasic.store.createRecord(EcBasic.Category, { name: 'Change Me', isVisible: YES } );
-            this.addObserver('category.status', this, 'finalizeCategory');
+          if (SC.none(this._category)) {
+            this._category = EcBasic.store.createRecord(EcBasic.Category, { name: 'Change Me', isVisible: YES, products: [] } );
+            this.addObserver('_category.status', this, 'finalizeCategory');
             EcBasic.store.commitRecords();
           } else {
-            EcBasic.categoryController.set('content', category);
-            this.gotoState('ADDING_PRODUCT_COLD');
+            EcBasic.categoryController.set('content', this._category);
+            delete this._category;
+            this.gotoState('ADDING_PRODUCT_COLD_START');
           }
         },
 
         finalizeCategory: function() {
-          var category = this.get('category'),
-              val = category.get('status');
+          var val = this._category.get('status');
 
           if (val & SC.Record.READY_CLEAN) {
-            EcBasic.categoriesController.set('content', [category]);
+            EcBasic.categoriesController.set('content', [this._category]);
             EcBasic.categoriesController.selectObject(EcBasic.categoriesController.firstSelectableObject());
             EcBasic.categoryController.set('isEditing', YES);
 
-            this.addObserver('category.status', this, 'finalizeCategory');
+            this.removeObserver('_category.status', this, 'finalizeCategory');
             delete this.category;
 
             var pane = EcBasic.mainPage.getPath('categoryPane');
@@ -178,52 +189,59 @@ EcBasic.statechart = Ki.Statechart.create({
         },
 
         save: function() {
-          this.gotoState('ADDING_PRODUCT_COLD');
+          this.gotoState('ADDING_PRODUCT_COLD_START');
         }
       }),
 
       // ----------------------------------------
-      //    state: ADDING_PRODUCT_COLD
+      //    state: ADDING_PRODUCT_COLD_START
       // ----------------------------------------
-      ADDING_PRODUCT_COLD: Ki.State.design({
+      ADDING_PRODUCT_COLD_START: Ki.State.design({
         _category: null,
+        _product: null,
 
         enterState: function() {
-          console.log('ADDING_PRODUCT_COLD');
+          console.log('ADDING_PRODUCT_COLD_START');
 
-          // Grab the category created in ADDING_CATEGORY_COLD
+          // Grab the category created in ADDING_CATEGORY_COLD_START
           this._category = EcBasic.store.find(EcBasic.Category).firstObject();
 
-          var product;
-
           if (EcBasic.storeType === 'fixtures') {
-            product = EcBasic.store.find(EcBasic.Product, 1);
+            this._product = EcBasic.store.find(EcBasic.Product, 1);
           }
 
-          if (SC.none(product) && !SC.none(this._category)) {
-            this.product = EcBasic.store.createRecord(EcBasic.Product, { isVisible: YES });
-            this.addObserver('product.status', this, 'finalizeProduct');
+          if (SC.none(this._product) && !SC.none(this._category)) {
+            this._product = EcBasic.store.createRecord(EcBasic.Product, { isVisible: YES });
+            this.addObserver('_product.status', this, 'finalizeProduct');
             EcBasic.store.commitRecords();
           } else {
-            EcBasic.productController.set('content', product);
+            EcBasic.productController.set('content', this._product);
+            delete this._product;
             this.gotoState('SHOWING_STANDARD');
           }
         },
 
         finalizeProduct: function() {
-          var product = this.get('product'),
-              val = product.get('status');
+          var val = this._product.get('status');
 
           if (val & SC.Record.READY_CLEAN) {
-            product.set('category', this._category);
+            console.log('0');
+            //console.log(SC.inspect(this._category));
+            //this._product.set('category', this._category);                // [TODO - error, products of null]
+            //this._category.get('products').pushObject(this._product);     //    same thing if this is tried
 
+            console.log('1');
             //me._category.get('products').pushObject(product); // SO, SHOULD NOT PUSH HERE, EH?
 
-            EcBasic.productController.set('content', product);
+            EcBasic.productController.set('content', this._product);
+            console.log('2');
             EcBasic.productController.set('isEditing', YES);
 
-            this.addObserver('product.status', this, 'finalizeProduct');
-            delete this.product;
+            console.log('3');
+            this.removeObserver('_product.status', this, 'finalizeProduct');
+            console.log('4');
+            delete this._product;
+            console.log('5');
 
             var pane = EcBasic.mainPage.getPath('productPane');
             if (!SC.none(pane)) {

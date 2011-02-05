@@ -12,3 +12,11 @@ SproutCore app. Or somebody may need to develop it for a real web storefront.
 This app has been developed with SproutCore stable-1.4 and with the Ki statechart framework. You'll need to add Ki to
 your frameworks directory, and depending on your local dev environment, perhaps SproutCore also.
 
+The default loading sets the store from fixtures data, and the app loads with several categories, each with several
+products. Products can be double-clicked, and then added to a shopping cart. The shopping cart can be viewed and edited.
+Checkout prints to the console the url that would be fired to PayPal, as an example.
+
+If you comment out the categories and products in the fixtures files for the records, you can simulate an admin workflow,
+whereby a site owner would add categories and products from scratch (labeled "COLD_START" in the statechart). This is
+stopping at a bug involving creation of the first category and subsequent attempts to set the first product into the
+first category.

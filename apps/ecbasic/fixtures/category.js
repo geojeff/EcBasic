@@ -7,6 +7,7 @@
 sc_require('models/category');
 
 EcBasic.Category.FIXTURES = [
+//To test the "COLD_START" functionality, comment out all starting records
   { 'guid': 1,
     'name': 'Hand Tools',
     'isVisible': YES,

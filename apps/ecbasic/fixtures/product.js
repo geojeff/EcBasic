@@ -7,6 +7,7 @@
 sc_require('models/product');
 
 EcBasic.Product.FIXTURES = [
+// To test the "COLD_START" functionality, comment out all starting records
   { 'guid': 1,
     'category': 1,
     'name': 'Hammer',

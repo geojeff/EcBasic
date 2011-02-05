@@ -603,7 +603,7 @@ EcBasic.mainPage = SC.Page.design({
         field: SC.TextFieldView.design({
           layout: { width: 40, height: 22, right: 163, centerY: 0 },
 
-          validator: SC.Validator.Number.create({ places: 2 }),
+          //validator: SC.Validator.Number.create({ places: 2 }), // [TODO - this validator won't allow input]
           isEnabledBinding: SC.Binding.from("EcBasic.productController.isEditing")
                   .bool()
                   .transform(function(value, isForward) {
