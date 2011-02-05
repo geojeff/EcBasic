@@ -204,18 +204,18 @@ EcBasic.statechart = Ki.Statechart.create({
           console.log('ADDING_PRODUCT_COLD_START');
 
           // Grab the category created in ADDING_CATEGORY_COLD_START
-          this._category = EcBasic.store.find(EcBasic.Category).firstObject();
+          this.set('_category', EcBasic.store.find(EcBasic.Category).firstObject());
 
           if (EcBasic.storeType === 'fixtures') {
-            this._product = EcBasic.store.find(EcBasic.Product, 1);
+            this.set('_product', EcBasic.store.find(EcBasic.Product, 1));
           }
 
-          if (SC.none(this._product) && !SC.none(this._category)) {
-            this._product = EcBasic.store.createRecord(EcBasic.Product, { isVisible: YES });
+          if (SC.none(this.get('_product')) && !SC.none(this.get('_category'))) {
+            this.set('_product', EcBasic.store.createRecord(EcBasic.Product, { isVisible: YES }));
             this.addObserver('_product.status', this, 'finalizeProduct');
             EcBasic.store.commitRecords();
           } else {
-            EcBasic.productController.set('content', this._product);
+            EcBasic.productController.set('content', this.get('_product'));
             delete this._product;
             this.gotoState('SHOWING_STANDARD');
           }
@@ -227,8 +227,8 @@ EcBasic.statechart = Ki.Statechart.create({
           if (val & SC.Record.READY_CLEAN) {
             console.log('0');
             //console.log(SC.inspect(this._category));
-            //this._product.set('category', this._category);                // [TODO - error, products of null]
-            //this._category.get('products').pushObject(this._product);     //    same thing if this is tried
+            this.get('_product').writeAttribute('category', this._category);
+            this.get('_category').get('products').addInverseRecord(this._product); // [TODO - error, products of null]
 
             console.log('1');
             //me._category.get('products').pushObject(product); // SO, SHOULD NOT PUSH HERE, EH?
